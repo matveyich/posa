@@ -24,9 +24,9 @@ public class Philosopher implements Runnable{
 	
 	public void eat(){
 		try {
-			while (this.sticksAcquired < 2){	// eat only after two sticks in hands
+			while (this.sticksAcquired < 2){	// eat only when two sticks in hands
 				this.sticksAcquired = 0;
-				
+								
 				this.leftStick.use(this);
 				this.leftStickAcquired = true;
 				this.sticksAcquired++;

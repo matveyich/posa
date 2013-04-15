@@ -1,6 +1,5 @@
 package posa;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -22,18 +21,18 @@ public class Chopstick {
 	 * @throws InterruptedException
 	 */
 	public void use(Philosopher phil) throws InterruptedException {
-		lock.lock();
+		this.lock.lock();
 		try {
-			while(isInUse == true){
-				phil.freeOneAcquiredStick();			// release acquired sticks by current philosopher (if any) to avoid deadlocks
-				freeToUse.await(1L, TimeUnit.SECONDS);	// wait to be notified when this stick is free
+			while(isInUse == true){						
+			phil.freeOneAcquiredStick();
+				freeToUse.await();	
 			}				
-			inUse.signal();								// signal that this stick is in use by a philosopher
+			inUse.signal();
 			
 			this.isInUse = true;
 			
 		} finally {
-			
+			this.lock.unlock();
 		}
 	}
 	
@@ -43,14 +42,17 @@ public class Chopstick {
 	 * @throws InterruptedException
 	 */
 	public void free(Philosopher phil) throws InterruptedException{
-		
+		this.lock.lock();
 		try {		  
 			this.isInUse = false;
 						
 		} finally {
 			freeToUse.signalAll();	// notify another philosopher, that the stick is free
-			lock.unlock();
+			this.lock.unlock();
 		}
 	}
-
+	
+	public boolean isInUse(){
+		return this.isInUse;
+	}
 }
