@@ -15,26 +15,23 @@ public class Chopstick {
 	private final Condition freeToUse = lock.newCondition();
 	
 	private boolean isInUse = false;
-	private int typeOfStick;
 	
 	/**
 	 * 
 	 * @param phil - Philosopher object, who frees the chopstick
-	 * @param typeOfStick - indicates whether the current stick is left or right to the current Philosopher
 	 * @throws InterruptedException
 	 */
-	public void use(Philosopher phil, int typeOfStick) throws InterruptedException {
+	public void use(Philosopher phil) throws InterruptedException {
 		lock.lock();
 		try {
 			while(isInUse == true){
-				freeToUse.await();
+				phil.freeOneAcquiredStick();			// release acquired sticks by current philosopher (if any) to avoid deadlocks
+				freeToUse.await(1L, TimeUnit.SECONDS);	// wait to be notified when this stick is free
 			}				
-			inUse.signal();
+			inUse.signal();								// signal that this stick is in use by a philosopher
 			
 			this.isInUse = true;
-			this.typeOfStick = typeOfStick;
 			
-			System.out.println(phil.getName() + " picks up " + this.getStickType() + " stick");
 		} finally {
 			
 		}
@@ -43,34 +40,17 @@ public class Chopstick {
 	/**
 	 * 
 	 * @param phil - Philosopher object, who frees the chopstick
-	 * @param typeOfStick - indicates whether the current stick is left or right to the current Philosopher
 	 * @throws InterruptedException
 	 */
 	public void free(Philosopher phil) throws InterruptedException{
 		
 		try {		  
-			System.out.println(phil.getName() + " puts down " + this.getStickType() + " stick");			
-		} finally {
 			this.isInUse = false;
-			
-			freeToUse.signalAll();
+						
+		} finally {
+			freeToUse.signalAll();	// notify another philosopher, that the stick is free
 			lock.unlock();
 		}
 	}
-	/**
-	 * 
-	 * @return - name of stick in relation to current philosopher
-	 */
-	private String getStickType() {
-		String typeOfStick;
-		switch (this.typeOfStick) {
-		case 1:
-			typeOfStick = "left";
-			break;
-		default: 
-			typeOfStick = "right";
-			break;
-		}
-		return typeOfStick;
-	}
+
 }
